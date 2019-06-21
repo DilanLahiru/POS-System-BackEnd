@@ -5,6 +5,7 @@ import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -87,7 +88,7 @@ public class ItemServlet extends HttpServlet {
 
             connection = ds.getConnection();
 
-            PreparedStatement pstm = connection.prepareStatement("INSERT INTO Customer VALUES (?,?,?,?)");
+            PreparedStatement pstm = connection.prepareStatement("INSERT INTO Item VALUES (?,?,?,?)");
             pstm.setObject(1, code);
             pstm.setObject(2, description);
             pstm.setObject(3, unitPrice);
@@ -112,6 +113,33 @@ public class ItemServlet extends HttpServlet {
                 e.printStackTrace();
             }
             out.close();
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("Delete Working...");
+
+        String code = req.getParameter("code");
+
+        if (code != null) {
+
+            try {
+                Connection connection = ds.getConnection();
+                PreparedStatement pstm = connection.prepareStatement("DELETE FROM Item WHERE id=?");
+                pstm.setObject(1, code);
+                int affectedRows = pstm.executeUpdate();
+                if (affectedRows > 0) {
+                    resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                } else {
+                    resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                }
+            } catch (Exception ex) {
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                ex.printStackTrace();
+            }
+        } else {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 }
